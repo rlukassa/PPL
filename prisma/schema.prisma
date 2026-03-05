@@ -1,0 +1,108 @@
+// buat postgre
+
+generator client { 
+    provider = "prisma-client-js" 
+}
+
+datasource db  {
+    provider = "postgresql"
+    url = env("DATABASE_URL")
+}
+
+enum role { 
+    DOSEN
+    TIM_SPSS
+}
+
+enum status { 
+    WAITING
+    IN_REVIEW
+    SUCCESS
+}
+
+enum type { 
+    SUCCESS 
+    ERROR
+    INFO
+}
+
+model Users { 
+     user_id    Int         @id @default(autoincrement())
+     email      String      @unique @db.VarChar(255)
+     username   String      @db.VarChar(255)
+     password   String      @db.VarChar(255)
+     role       role       
+     created_at DateTime    @default(now()) @db.Timestamptz
+
+     documents       Documents[]   @relation("LecturerDocuments")
+     ratings         Ratings[]      @relation("AssessingLecturer")
+     notifications   Notifications[]  
+     preferences    User_Preferences?
+
+     @@map("users")
+}
+
+model Documents { 
+    document_id     Int         @id @default(autoincrement())
+    lecturer_id     Int         
+    file_path       String      @db.VarChar(255)
+    title           String      @db.VarChar(1000)
+    published_at    DateTime    @default(now())
+    deleted_at      DateTime?    @db.Timestamptz
+    status          status      @default(WAITING)
+
+    ratings         Ratings[]
+    lecturer        Users @relation("LecturerDocuments", fields: [lecturer_id], references :[user_id]) 
+    metadata        Metadata?
+
+    @@map("documents")
+}
+
+model Ratings { 
+    rating_id               Int         @id @default(autoincrement())
+    document_id             Int         
+    assessing_lecturer_id   Int         
+    score                   Int
+    content                 Json?       @db.Json
+    updated_at              DateTime    @default(now()) @db.Timestamptz @updatedAt
+
+    documents               Documents @relation(fields: [document_id], references: [document_id])
+    asessingLecturer        Users     @relation("AssessingLecturer", fields: [assessing_lecturer_id], references: [user_id])
+
+    @@map("ratings")
+}
+
+model Notifications { 
+    notification_id         Int         @id @default(autoincrement())
+    user_id                 Int 
+    type                    type 
+    payload                 Json?       @db.Json
+    is_read                 Boolean     @default(false)
+    created_at              DateTime    @default(now())     @db.Timestamptz
+
+    user Users @relation(fields: [user_id], references: [user_id])
+
+    @@map("notifications")
+}
+
+model User_Preferences { 
+    user_id                 Int         @id 
+    is_enabled              Boolean     @default(true)
+
+    user Users @relation(fields: [user_id], references: [user_id])
+
+    @@map("user_preferences")
+}
+
+model Metadata  {
+    metadata_id             Int        @id @default(autoincrement())
+    document_id             Int        @unique    
+    payload                 Json?       @db.Json
+    created_at              DateTime   @default(now()) @db.Timestamptz
+    updated_at              DateTime   @db.Timestamptz @updatedAt
+
+    document Documents      @relation(fields: [document_id], references: [document_id])
+
+    @@map("metadata")
+}
+
