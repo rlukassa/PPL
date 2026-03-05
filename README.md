@@ -52,3 +52,19 @@ Agar pengerjaan Sprint 1 berjalan lancar, berikut pembagian fokusnya:
 1. **Instalasi Dependensi:**
    ```bash
    npm install
+
+2. **Konfigurasi Environment:**
+   - Salin file `.env.example` menjadi `.env`:
+     ```bash
+     cp .env.example .env
+     ```
+   - Buka file `.env` dan sesuaikan `DATABASE_URL` dengan database PostgreSQL lokal masing-masing.
+
+3. **Setup Database (Prisma):**
+   Jalankan perintah berikut untuk menyinkronkan struktur tabel dan generate client:
+   ```bash
+   # Sinkronisasi tabel ke database lokal
+   npx prisma migrate dev
+
+   # Generate Prisma Client (untuk validasi tipe data)
+   npx prisma generate
